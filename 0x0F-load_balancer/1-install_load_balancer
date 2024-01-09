@@ -1,2 +1,22 @@
 #!/usr/bin/env bash
-# Install and configure HAProxy load balance
+# Installs HAProxy version 1.8 with the following configurations:
+#+    Enables management via the init script.
+#+    Distributes requests using a round-robin algorithm.
+
+apt-get update
+apt-get install -y haproxy
+
+printf %s "
+frontend hbnb-lb_front
+        bind *:80
+        mode http
+        default_backend hbnb-lb_back
+backend hbnb-lb_back
+        balance roundrobin
+        server 421512-web-01 34.207.188.106:80 check
+        server 421512-web-02 100.26.249.56:80 check
+" >> /etc/haproxy/haproxy.cfg
+
+echo "ENABLED=1" >> /etc/default/haproxy
+
+service haproxy start
