@@ -1,16 +1,23 @@
 #!/usr/bin/python3
-"""Returns to-do list information for a given employee ID."""
-import json
-from urllib import request
+"""Exports to-do list information for a given employee ID to CSV format."""
+import csv
 import requests
 import sys
-if __name__ == "__main__":
-    u_id = sys.argv[1]
-    url = "https://jsonplaceholder.typicode.com/"
-    user = requests.get(url+"users/{}".format(u_id)).json()
-    username = user.get("username")
-    todos = requests.get(url+"todos", params={"userId": u_id}).json()
+import urllib3
 
-    with open("{}.json".format(u_id), "w") as jsonfile:
-        json.dump({u_id: [{"task": t.get("title"), "completed": t.get(
-            "completed"), "username": username} for t in todos]}, jsonfile)
+# Disable SSL certificate verification
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
+if __name__ == "__main__":
+    user_id = sys.argv[1]
+    url = "https://jsonplaceholder.typicode.com/"
+    user = requests.get(url + "users/{}".format(user_id), verify=False).json()
+    username = user.get("username")
+    todos = requests.get(url + "todos", params={"userId": user_id}, verify=False).json()
+
+    with open("{}.csv".format(user_id), "w", newline="") as csvfile:
+        writer = csv.writer(csvfile, quoting=csv.QUOTE_ALL)
+        [
+            writer.writerow([user_id, username, t.get("completed"), t.get("title")])
+            for t in todos
+        ]
